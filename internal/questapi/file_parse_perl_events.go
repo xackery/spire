@@ -121,7 +121,7 @@ func (c *ParseService) parsePerlEvents(files map[string]string) []PerlEvent {
 	// second pass; parse event vars and tie to entities
 	var perlEvents = []PerlEvent{}
 	var hasMapped = []string{}
-	for fileName, _ := range files {
+	for fileName := range files {
 		contents := files[fileName]
 		if strings.Contains(fileName, "embparser.cpp") {
 			currentEvent := ""

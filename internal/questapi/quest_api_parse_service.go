@@ -1,12 +1,13 @@
 package questapi
 
 import (
-	"github.com/Akkadius/spire/internal/github"
-	gocache "github.com/patrickmn/go-cache"
-	"github.com/sirupsen/logrus"
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/Akkadius/spire/internal/github"
+	gocache "github.com/patrickmn/go-cache"
+	"github.com/sirupsen/logrus"
 )
 
 type ParseService struct {
@@ -28,6 +29,7 @@ type QuestApiResponse struct {
 	LastRefreshed time.Time `json:"last_refreshed"`
 	PerlApi       `json:"perl"`
 	LuaApi        `json:"lua"`
+	Definition    string `json:"definition,omitempty"`
 }
 
 type PerlApi struct {
@@ -65,6 +67,9 @@ var perlEvents []PerlEvent
 var luaEvents []LuaEvent
 var perlConstants map[string][]PerlConstants
 var luaConstants map[string][]LuaConstants
+
+// luaDefinitions is a flat file generated from api parser
+var luaDefinitions string
 
 const lockKey = "quest-api-lock"
 
@@ -208,6 +213,7 @@ func (c *ParseService) Parse(forceRefresh bool) QuestApiResponse {
 	// delete lock
 	c.cache.Delete(lockKey)
 
+	c.generateLuaDefinitions()
 	return c.apiResponse()
 }
 
@@ -225,5 +231,6 @@ func (c *ParseService) apiResponse() QuestApiResponse {
 			LuaEvents:    luaEvents,
 			LuaConstants: luaConstants,
 		},
+		Definition: luaDefinitions,
 	}
 }

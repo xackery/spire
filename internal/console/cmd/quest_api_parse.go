@@ -2,10 +2,11 @@ package cmd
 
 import (
 	"fmt"
+	"time"
+
 	"github.com/Akkadius/spire/internal/questapi"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
-	"time"
 )
 
 type QuestApiParseCommand struct {

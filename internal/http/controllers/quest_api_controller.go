@@ -2,12 +2,13 @@ package controllers
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/Akkadius/spire/internal/env"
 	"github.com/Akkadius/spire/internal/http/routes"
 	"github.com/Akkadius/spire/internal/questapi"
 	"github.com/labstack/echo/v4"
 	"github.com/sirupsen/logrus"
-	"net/http"
 )
 
 type QuestApiController struct {
@@ -27,6 +28,7 @@ func NewQuestApiController(
 func (d *QuestApiController) Routes() []*routes.Route {
 	return []*routes.Route{
 		routes.RegisterRoute(http.MethodGet, "quest-api/definitions", d.getQuestDefinitions, nil),
+		routes.RegisterRoute(http.MethodGet, "quest-api/lua-definitions", d.getLuaQuestDefinitions, nil),
 		routes.RegisterRoute(http.MethodPost, "quest-api/refresh-definitions", d.webhookSourceDefinitionsUpdateApi, nil),
 		routes.RegisterRoute(http.MethodPost, "quest-api/webhook-update-api", d.webhookSourceDefinitionsUpdateApi, nil),
 		routes.RegisterRoute(http.MethodPost, "quest-api/webhook-update-source-examples/org/:org/repo/:repo/branch/:branch", d.webhookSourceExamplesUpdateApi, nil),
@@ -41,6 +43,10 @@ func (d *QuestApiController) Routes() []*routes.Route {
 
 func (d *QuestApiController) getQuestDefinitions(c echo.Context) error {
 	return c.JSON(http.StatusOK, echo.Map{"data": d.parser.Parse(false)})
+}
+
+func (d *QuestApiController) getLuaQuestDefinitions(c echo.Context) error {
+	return c.String(200, d.parser.Parse(false).Definition)
 }
 
 type SearchTermRequest struct {
@@ -77,7 +83,7 @@ func (d *QuestApiController) webhookSourceDefinitionsUpdateApi(c echo.Context) e
 	fmt.Println("Received definitions update request...")
 
 	isGithubRequest := c.Request().Header.Get("X-Github-Event") != "" &&
-			c.Request().Header.Get("X-Github-Delivery") != ""
+		c.Request().Header.Get("X-Github-Delivery") != ""
 
 	if isGithubRequest && env.IsAppEnvProduction() {
 		d.parser.Parse(true)
